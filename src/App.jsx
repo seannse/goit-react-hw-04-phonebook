@@ -1,80 +1,70 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { ContactForm, ContactList, Filter } from './components';
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+export function App() {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
+  useEffect(() => {
+    const contactsFromLocalStorage = JSON.parse(
+      localStorage.getItem('contacts')
+    );
+    contactsFromLocalStorage && setContacts(contactsFromLocalStorage);
+  }, []);
 
-    parsedContacts && this.setState({ contacts: parsedContacts });
-  }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  componentDidUpdate(_, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-  addContact = contactObj => {
+  function addContact(contactObj) {
     if (
-      this.state.contacts.some(
-        ({ name }) => name.toLowerCase() === contactObj.name.toLowerCase()
+      contacts.some(
+        ({ name }) =>
+          name.toLowerCase().trim() === contactObj.name.toLowerCase().trim()
       )
     ) {
       Notify.failure(`${contactObj.name} is already in contacts!`);
       return;
     }
+    setContacts(prevContacts => [
+      ...prevContacts,
+      {
+        id: nanoid(),
+        ...contactObj,
+      },
+    ]);
+  }
 
-    const withIdContact = {
-      id: nanoid(),
-      ...contactObj,
-    };
+  function handleFilter({ target }) {
+    setFilter(target.value);
+  }
 
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, withIdContact],
-    }));
-  };
-
-  handleFilter = ({ target }) => {
-    const searchName = target.value.toLowerCase();
-    this.setState({ filter: searchName });
-  };
-
-  filteredContacts = () => {
-    return this.state.contacts.filter(contact =>
-      contact.name.toLowerCase().includes(this.state.filter.trim())
-    );
-  };
-
-  handleDelete = id => {
-    this.setState({
-      contacts: this.state.contacts.filter(contact => contact.id !== id),
-    });
-  };
-
-  render() {
-    const { filter, contacts } = this.state;
-    return (
-      <div>
-        <h1>Phonebook</h1>
-        <ContactForm addContact={this.addContact} />
-        <Filter handleFilter={this.handleFilter} value={filter} />
-        <h2>Contacts</h2>
-        {contacts.length !== 0 ? (
-          <ContactList
-            handleDelete={this.handleDelete}
-            contactArr={this.filteredContacts()}
-          />
-        ) : (
-          <p>Your contacts list is empty</p>
-        )}
-      </div>
+  function filteredContacts() {
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase())
     );
   }
+
+  function handleDelete(id) {
+    setContacts(contacts.filter(contact => contact.id !== id));
+  }
+
+  return (
+    <div>
+      <h1>Phonebook</h1>
+      <ContactForm addContact={addContact} />
+      <Filter handleFilter={handleFilter} value={filter} />
+      <h2>Contacts</h2>
+      {contacts.length !== 0 ? (
+        <ContactList
+          handleDelete={handleDelete}
+          contactArr={filteredContacts()}
+        />
+      ) : (
+        <p>Your contacts list is empty</p>
+      )}
+    </div>
+  );
 }
