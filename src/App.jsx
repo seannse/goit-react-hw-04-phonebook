@@ -4,7 +4,9 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { ContactForm, ContactList, Filter } from './components';
 
 export function App() {
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState(
+    () => localStorage.setItem('contacts', JSON.stringify(contacts)) ?? []
+  );
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
@@ -14,9 +16,9 @@ export function App() {
     contactsFromLocalStorage && setContacts(contactsFromLocalStorage);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  // useEffect(() => {
+  //   localStorage.setItem('contacts', JSON.stringify(contacts));
+  // }, [contacts]);
 
   function addContact(contactObj) {
     if (
