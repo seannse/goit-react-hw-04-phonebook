@@ -5,20 +5,22 @@ import { ContactForm, ContactList, Filter } from './components';
 
 export function App() {
   const [contacts, setContacts] = useState(
-    () => localStorage.setItem('contacts', JSON.stringify(contacts)) ?? []
+    () => JSON.parse(
+      localStorage.getItem('contacts')
+    ); ?? []
   );
   const [filter, setFilter] = useState('');
 
-  useEffect(() => {
-    const contactsFromLocalStorage = JSON.parse(
-      localStorage.getItem('contacts')
-    );
-    contactsFromLocalStorage && setContacts(contactsFromLocalStorage);
-  }, []);
-
   // useEffect(() => {
-  //   localStorage.setItem('contacts', JSON.stringify(contacts));
-  // }, [contacts]);
+  //   const contactsFromLocalStorage = JSON.parse(
+  //     localStorage.getItem('contacts')
+  //   );
+  //   contactsFromLocalStorage && setContacts(contactsFromLocalStorage);
+  // }, []);
+
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
   function addContact(contactObj) {
     if (
